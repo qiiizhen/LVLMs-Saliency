@@ -18,3 +18,15 @@ $PY LVLMs-Saliency/analyze_from_png.py
 echo ""
 echo "=== analyze_ablation.py ==="
 $PY LVLMs-Saliency/analyze_ablation.py
+
+echo ""
+echo "=== analyze_position_trend.py ==="
+$PY LVLMs-Saliency/analyze_position_trend.py
+
+echo ""
+echo "=== analyze_case_study.py ==="
+$PY LVLMs-Saliency/analyze_case_study.py
+
+echo ""
+echo "=== analyze_layer.py ==="
+$PY LVLMs-Saliency/analyze_layer.py

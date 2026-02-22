@@ -164,6 +164,7 @@ if __name__ == '__main__':
     parser.add_argument('--model-path', type=str, required=False, default="/root/autodl-tmp/llava-v1.5-7b")
     parser.add_argument('--prompt', type=str, default="Describe the image in detail.", help="Text prompt for the model")
     parser.add_argument('--layers', type=str, default='All layers', help='Specify number of layers to show')
+    parser.add_argument('--save-layers', action='store_true', help='Also save per-layer npy files for layer analysis')
     pargs = parser.parse_args()
 
     examples = [
@@ -189,7 +190,8 @@ if __name__ == '__main__':
         image_aspect_ratio = 'pad'
         layers = pargs.layers
         prompt = pargs.prompt
-    
+        save_layers = pargs.save_layers
+
     args = InferenceArgs()
     disable_torch_init()
     print('Loading model...')
@@ -230,6 +232,7 @@ if __name__ == '__main__':
     
     #attention_Layer = gr.inputs.Dropdown(choices=["All layers", "", "Sample 5 layers", "Sample 10 layers"], default="Sample 3 layers", label="Layer Attention Visualization")
     attention_Layer = args.layers
+    save_layers = args.save_layers
     
 
     
@@ -412,10 +415,16 @@ if __name__ == '__main__':
                         if global_sum_attention_saliency_map is None:
                             global_sum_attention_saliency_map = np.zeros_like(avg_avg_lower_saliency_map)
                         global_sum_attention_saliency_map += avg_avg_lower_saliency_map
-                        
+
                         if global_sum_attention_weight_map is None:
                             global_sum_attention_weight_map = np.zeros_like(avg_avg_lower_weight_map)
                         global_sum_attention_weight_map += avg_avg_lower_weight_map
+
+                        # Per-layer saving (only when --save-layers flag is set)
+                        if save_layers:
+                            os.makedirs('npy', exist_ok=True)
+                            np.save(f'npy/onlytext_{hmode}_{name}_layer{layer_idx:02d}_saliency.npy', avg_avg_lower_saliency_map)
+                            np.save(f'npy/onlytext_{hmode}_{name}_layer{layer_idx:02d}_weight.npy', avg_avg_lower_weight_map)
                     
                     global_sum_attention_saliency_map_normalized = log_normalize(global_sum_attention_saliency_map)
                     global_sum_attention_weight_map_normalized = log_normalize(global_sum_attention_weight_map)
