@@ -193,7 +193,7 @@ if __name__ == '__main__':
     args = InferenceArgs()
     disable_torch_init()
     print('Loading model...')
-    model_path = "/root/autodl-tmp/llava-v1.5-7b"
+    model_path = pargs.model_path
     model_name = get_model_name_from_path(model_path)
     tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, args.model_base, model_name, args.load_8bit, args.load_4bit, device=args.device)
     if 'llama-2' in model_name.lower():
@@ -213,12 +213,13 @@ if __name__ == '__main__':
     
 
     model.config.use_fast_v = False
-    model.model.reset_fastv()
+    if hasattr(model.model, 'reset_fastv'):
+        model.model.reset_fastv()
 
     total_layers = model.config.num_hidden_layers
     
     #image_input = gr.Image(type="pil",label="Image",)
-    image_input = Image.open("/root/autodl-tmp/FastV/COCO_val2014_000000288673.jpg")
+    image_input = Image.open("./observation/COCO_val2014_000000499775.jpg")
 
     # attention_Layer = gr.Radio(
     #     choices=["Every 16 Layers","Beam search","Beam search", "All Layers"],
@@ -345,7 +346,6 @@ if __name__ == '__main__':
                     loss.backward()
                     print("梯度范围:", model.model.layers[0].self_attn.attention_dapter.params.grad.min(), model.model.layers[0].self_attn.attention_dapter.params.grad.max())
                     print("loss:",loss)
-                    exit()
                     # get attn_saliency
                     layer_attn_saliency_list = []
                     layer_attn_weight_list = []
@@ -436,6 +436,9 @@ if __name__ == '__main__':
                     else:
                         plt.savefig(f'{hmode}_{name}_ALL_layer_avg_lower_tri_map_normalized.png')
                     plt.close()
+                    os.makedirs('npy', exist_ok=True)
+                    np.save(f'npy/onlytext_{hmode}_{name}_saliency.npy', global_sum_attention_saliency_map_normalized)
+                    np.save(f'npy/onlytext_{hmode}_{name}_tokens.npy', np.array(all_text_token_str_clr))
                     #------------------------------------------#
                     # 绘制 weight map
                     plt.figure(figsize=(20, 20))
@@ -462,7 +465,7 @@ if __name__ == '__main__':
                     new_input_ids = torch.cat([input_ids,only_outputs_ids_before_hallu.unsqueeze(0)],1)
                     torch.save(new_input_ids.cpu(), f'{name}_{hmode}.pt')
                 
-                exit()
+                return [], [], time_cost
                 output = output.strip().replace("</s>","")
                 outputs.append(output)
 
@@ -513,8 +516,8 @@ if __name__ == '__main__':
         buffered = BytesIO()
         pil_image.save(buffered, format="PNG") 
         return base64.b64encode(buffered.getvalue()).decode("utf-8")
-    fastv_tradeoff = pil_to_base64('./figs/fastv_tradeoff.png')
-    attn_map = pil_to_base64('./figs/attn_map.png')
+    fastv_tradeoff = ''
+    attn_map = ''
 
     description= f'''# FastV Demo
 Welcome to the demonstration for [FastV](https://arxiv.org/abs/2403.06764), an innovative plug-and-play inference accelerator specifically designed for Large Vision-Language Models. 

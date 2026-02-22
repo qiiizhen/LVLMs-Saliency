@@ -195,9 +195,7 @@ if __name__ == '__main__':
     args = InferenceArgs()
     disable_torch_init()
     print('Loading model...')
-    model_path = "/root/autodl-tmp/llava-v1.5-7b"
-    #model_name = get_model_name_from_path(args.model_path)
-    #tokenizer, model, image_processor, context_len = load_pretrained_model(args.model_path, args.model_base, model_name, args.load_8bit, args.load_4bit, device=args.device)
+    model_path = pargs.model_path
     model_name = get_model_name_from_path(model_path)
     tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, args.model_base, model_name, args.load_8bit, args.load_4bit, device=args.device)
     #print("Chat Template:\n", tokenizer.chat_template)
